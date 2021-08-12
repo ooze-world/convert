@@ -11,7 +11,7 @@ import me.nullicorn.ooze.convert.VersionedTag;
  *
  * @author Nullicorn
  */
-public enum RegionTag implements VersionedTag {
+enum RegionTag implements VersionedTag {
 
   /*
    * Tags within the root compounds of the `region` directory.
