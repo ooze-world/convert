@@ -1,10 +1,10 @@
-package me.nullicorn.ooze.nbt.region;
+package me.nullicorn.ooze.convert.region;
 
 import java.io.IOException;
 import me.nullicorn.nedit.type.NBTCompound;
 import me.nullicorn.ooze.level.BlockState;
-import me.nullicorn.ooze.nbt.VersionedCodec;
-import me.nullicorn.ooze.nbt.VersionedTag;
+import me.nullicorn.ooze.convert.VersionedCodec;
+import me.nullicorn.ooze.convert.VersionedTag;
 
 /**
  * Provides serialization to and from NBT block states stored in palettes.

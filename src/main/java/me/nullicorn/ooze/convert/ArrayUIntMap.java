@@ -1,4 +1,4 @@
-package me.nullicorn.ooze.nbt;
+package me.nullicorn.ooze.convert;
 
 /**
  * A structure for associating unique integer keys with unsigned integer values.

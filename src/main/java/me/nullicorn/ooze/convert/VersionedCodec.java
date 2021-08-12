@@ -1,4 +1,4 @@
-package me.nullicorn.ooze.nbt;
+package me.nullicorn.ooze.convert;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -1,4 +1,4 @@
-package me.nullicorn.ooze.nbt.region;
+package me.nullicorn.ooze.convert.region;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,8 +10,8 @@ import me.nullicorn.nedit.type.NBTList;
 import me.nullicorn.nedit.type.TagType;
 import me.nullicorn.ooze.level.BlockState;
 import me.nullicorn.ooze.level.Palette;
-import me.nullicorn.ooze.nbt.ArrayUIntMap;
-import me.nullicorn.ooze.nbt.VersionedCodec;
+import me.nullicorn.ooze.convert.ArrayUIntMap;
+import me.nullicorn.ooze.convert.VersionedCodec;
 
 /**
  * Provides serialization to and from lists of NBT block states, also known as a palette.

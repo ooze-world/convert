@@ -1,7 +1,7 @@
-package me.nullicorn.ooze.nbt.region;
+package me.nullicorn.ooze.convert.region;
 
 import me.nullicorn.ooze.level.BitHelper;
-import me.nullicorn.ooze.nbt.VersionedCodec;
+import me.nullicorn.ooze.convert.VersionedCodec;
 
 /**
  * Provides translation between integer arrays and Minecraft's <a href=https://wiki.vg/Chunk_Format#Compacted_data_array>packed

@@ -1,10 +1,10 @@
-package me.nullicorn.ooze.nbt.region;
+package me.nullicorn.ooze.convert.region;
 
 import java.util.Optional;
 import me.nullicorn.nedit.type.NBTCompound;
 import me.nullicorn.nedit.type.NBTList;
 import me.nullicorn.nedit.type.TagType;
-import me.nullicorn.ooze.nbt.VersionedTag;
+import me.nullicorn.ooze.convert.VersionedTag;
 
 /**
  * An assortment of NBT tags used by Minecraft for storing chunk information.

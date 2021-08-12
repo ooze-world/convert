@@ -5,7 +5,7 @@
       <modelVersion>4.0.0</modelVersion>
 
       <groupId>com.github.ooze</groupId>
-      <artifactId>level</artifactId>
+      <artifactId>convert</artifactId>
       <version>0.0.1-SNAPSHOT</version>
 
       <properties>
@@ -23,18 +23,10 @@
       </repositories>
 
       <dependencies>
-            <!-- Protocol Buffers (wire encoding) -->
             <dependency>
-                  <groupId>com.google.protobuf</groupId>
-                  <artifactId>protobuf-java</artifactId>
-                  <version>3.17.3</version>
-            </dependency>
-
-            <!-- NBT (storage & encoding) -->
-            <dependency>
-                  <groupId>com.github.TheNullicorn</groupId>
-                  <artifactId>Nedit</artifactId>
-                  <version>v2.1.0</version>
+                  <groupId>com.github.ooze-world</groupId>
+                  <artifactId>level</artifactId>
+                  <version>main-SNAPSHOT</version>
             </dependency>
 
             <!-- Unit Testing -->

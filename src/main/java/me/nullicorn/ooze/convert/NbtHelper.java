@@ -1,4 +1,4 @@
-package me.nullicorn.ooze.nbt;
+package me.nullicorn.ooze.convert;
 
 import com.google.protobuf.ByteString;
 import java.io.ByteArrayOutputStream;
