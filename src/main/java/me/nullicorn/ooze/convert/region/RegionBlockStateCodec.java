@@ -2,9 +2,9 @@ package me.nullicorn.ooze.convert.region;
 
 import java.io.IOException;
 import me.nullicorn.nedit.type.NBTCompound;
-import me.nullicorn.ooze.level.BlockState;
 import me.nullicorn.ooze.convert.VersionedCodec;
 import me.nullicorn.ooze.convert.VersionedTag;
+import me.nullicorn.ooze.level.BlockState;
 
 /**
  * Provides serialization to and from NBT block states stored in palettes.
@@ -36,6 +36,7 @@ public class RegionBlockStateCodec extends VersionedCodec {
    *
    * @param state The block state to NBT-encode.
    * @return an NBT compound resembling the inputted block state.
+   * @throws IllegalArgumentException if the input state is {@code null}.
    */
   public NBTCompound encode(BlockState state) {
     if (state == null) {
@@ -63,7 +64,8 @@ public class RegionBlockStateCodec extends VersionedCodec {
    *
    * @param state An NBT compound representing a Minecraft block state.
    * @return the block state defined by the compound's tags.
-   * @throws IOException if the compound has no {@code Name} tag.
+   * @throws IllegalArgumentException if the input compound is null.
+   * @throws IOException              if the compound has no {@code Name} tag.
    */
   public BlockState decode(NBTCompound state) throws IOException {
     if (state == null) {
