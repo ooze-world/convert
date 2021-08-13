@@ -1,7 +1,7 @@
 package me.nullicorn.ooze.convert.region;
 
-import me.nullicorn.ooze.level.BitHelper;
 import me.nullicorn.ooze.convert.VersionedCodec;
+import me.nullicorn.ooze.level.BitHelper;
 
 /**
  * Provides translation between integer arrays and Minecraft's <a href=https://wiki.vg/Chunk_Format#Compacted_data_array>packed
@@ -105,7 +105,7 @@ public class RegionCompactArrayCodec extends VersionedCodec {
   /**
    * Helper function that decodes arrays using the old format (unpadded).
    */
-  private int[] decodeUnpadded(long[] words, int magnitude) {
+  private static int[] decodeUnpadded(long[] words, int magnitude) {
     int valueMask = BitHelper.createBitMask(magnitude);
 
     int[] values = new int[words.length * 64 / magnitude];
