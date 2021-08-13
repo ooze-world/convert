@@ -341,7 +341,7 @@ enum RegionTag implements VersionedTag {
     // Get the value and make sure it is the correct
     // type.
     Object value = compound.get(tagName());
-    if (value == null || value.getClass() != tagType.getRuntimeType()) {
+    if (value == null || !tagType.getRuntimeType().isAssignableFrom(value.getClass())) {
       return Optional.empty();
     }
 
