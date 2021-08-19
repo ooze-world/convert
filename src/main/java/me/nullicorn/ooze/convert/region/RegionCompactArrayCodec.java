@@ -2,6 +2,7 @@ package me.nullicorn.ooze.convert.region;
 
 import me.nullicorn.ooze.convert.VersionedCodec;
 import me.nullicorn.ooze.level.BitHelper;
+import me.nullicorn.ooze.level.PackedUIntArray;
 
 /**
  * Provides translation between integer arrays and Minecraft's <a href=https://wiki.vg/Chunk_Format#Compacted_data_array>packed
@@ -17,28 +18,20 @@ public class RegionCompactArrayCodec extends VersionedCodec {
   private static final int USE_PADDING_VERSION = 2527;
 
   /**
-   * @throws IllegalArgumentException if the magnitude is invalid for a 32-bit integer.
-   */
-  private static void checkMagnitude(int magnitude) {
-    if (magnitude <= 0 || magnitude > 32) {
-      throw new IllegalArgumentException("magnitude must be in range (0, 32] bits");
-    }
-  }
-
-  /**
    * Helper function that encodes arrays using the new format (padded).
    */
-  private static long[] encodePadded(int[] values, int magnitude) {
+  private static long[] encodePadded(PackedUIntArray values) {
+    int magnitude = values.magnitude();
     int valuesPerWord = Long.SIZE / magnitude;
-    int wordsNeeded = (int) Math.ceil((double) values.length / valuesPerWord);
+    int wordsNeeded = (int) Math.ceil((double) values.size() / valuesPerWord);
     int valueMask = BitHelper.createBitMask(magnitude);
 
     long[] words = new long[wordsNeeded];
 
     int i = 0;
     for (int w = 0; w < words.length; w++) {
-      for (int ofst = 0; ofst < Long.SIZE && i < values.length; ofst += magnitude, i++) {
-        int value = values[i] & valueMask;
+      for (int ofst = 0; ofst < Long.SIZE && i < values.size(); ofst += magnitude, i++) {
+        int value = values.get(i) & valueMask;
         if (ofst < 0) {
           value >>>= -ofst;
         } else {
@@ -55,14 +48,15 @@ public class RegionCompactArrayCodec extends VersionedCodec {
   /**
    * Helper function that encodes arrays using the old format (unpadded).
    */
-  private static long[] encodeUnpadded(int[] values, int magnitude) {
-    int wordsNeeded = (int) Math.ceil(magnitude * values.length / 64d);
+  private static long[] encodeUnpadded(PackedUIntArray values) {
+    int magnitude = values.magnitude();
+    int wordsNeeded = (int) Math.ceil(magnitude * values.size() / 64d);
 
     long[] words = new long[wordsNeeded];
 
     int valueMask = BitHelper.createBitMask(magnitude);
-    for (int i = 0, word = 0, ofst = 0; i < values.length; i++) {
-      int value = values[i] & valueMask;
+    for (int i = 0, word = 0, ofst = 0; i < values.size(); i++) {
+      int value = values.get(i) & valueMask;
       words[word] |= value << ofst;
 
       // Check if we ran out of bits in the
@@ -157,42 +151,44 @@ public class RegionCompactArrayCodec extends VersionedCodec {
    * See the link below for the encoded format. If {@link #getCompatibility() version} {@code >=
    * 2527}, the newer encoding is used. Otherwise the older one is used.
    *
-   * @param values    A plain array of the values to be encoded.
-   * @param magnitude The number of bits used to represent values within the words.
+   * @param values An array of the values to be encoded.
    * @return the input values, packed into 64-bit words.
-   * @throws IllegalArgumentException if the magnitude is not in the range {@code (0, 32]}. Also if
-   *                                  the {@code values} array is {@code null}.
+   * @throws IllegalArgumentException if the {@code values} array is {@code null}.
    * @see <a href=https://wiki.vg/Chunk_Format#Compacted_data_array>Compact data array format</a>
    */
-  public long[] encode(int[] values, int magnitude) {
-    checkMagnitude(magnitude);
+  public long[] encode(PackedUIntArray values) {
     if (values == null) {
       throw new IllegalArgumentException("null values array cannot be encoded");
     }
 
     return dataVersion >= USE_PADDING_VERSION
-        ? encodePadded(values, magnitude)
-        : encodeUnpadded(values, magnitude);
+        ? encodePadded(values)
+        : encodeUnpadded(values);
   }
 
   /**
-   * Unpacks an array of ints from 64-bit words. More information {@link #encode(int[], int) here}.
+   * Unpacks an array of ints from 64-bit words. More information {@link #encode(PackedUIntArray)
+   * here}.
    *
    * @param words     An array of values packed into 64-bit words.
    * @param magnitude The number of bits used to encode each value within the words.
    * @return the unpacked values stored in the words.
+   * @throws IllegalArgumentException if the magnitude is not in the range {@code (0, 32]}.
    * @apiNote As many values as possible are read, so the decoded array may be larger than the
    * original.
-   * @see #encode(int[], int) encode()
+   * @see #encode(PackedUIntArray) encode()
    */
-  public int[] decode(long[] words, int magnitude) {
-    checkMagnitude(magnitude);
+  public PackedUIntArray decode(long[] words, int magnitude) {
     if (words == null) {
       throw new IllegalArgumentException("null words array cannot be decoded");
+    } else if (magnitude < 1 || magnitude > 32) {
+      throw new IllegalArgumentException("Magnitude must be in range [0, 32]");
     }
 
-    return dataVersion >= USE_PADDING_VERSION
+    int[] values = dataVersion >= USE_PADDING_VERSION
         ? decodePadded(words, magnitude)
         : decodeUnpadded(words, magnitude);
+
+    return new PackedUIntArray(values);
   }
 }
