@@ -32,7 +32,7 @@ public class RegionSectionCodec extends VersionedCodec {
     useModernCodec = PALETTE_TAG.isSupported(dataVersion);
   }
 
-  public NBTCompound encode(Cell section, int altitude) {
+  public NBTCompound encode(Cell section) {
     NBTCompound encoded = new NBTCompound();
 
     if (useModernCodec) {
@@ -52,7 +52,6 @@ public class RegionSectionCodec extends VersionedCodec {
       throw new UnsupportedOperationException("Legacy section encoding is not yet supported");
     }
 
-    ALTITUDE_TAG.setValueIn(encoded, altitude);
     return encoded;
   }
 
