@@ -13,7 +13,7 @@ import me.nullicorn.ooze.level.Palette;
 /**
  * @author Nullicorn
  */
-public class RegionSectionCodec extends VersionedCodec {
+public class RegionSectionCodec extends VersionedCodec<Cell, NBTCompound> {
 
   private static final VersionedTag ALTITUDE_TAG = RegionTag.SECTION_ALTITUDE;
   private static final VersionedTag PALETTE_TAG  = RegionTag.PALETTE;
@@ -32,6 +32,7 @@ public class RegionSectionCodec extends VersionedCodec {
     useModernCodec = PALETTE_TAG.isSupported(dataVersion);
   }
 
+  @Override
   public NBTCompound encode(Cell section) {
     NBTCompound encoded = new NBTCompound();
 
@@ -55,6 +56,7 @@ public class RegionSectionCodec extends VersionedCodec {
     return encoded;
   }
 
+  @Override
   public Cell decode(NBTCompound section) throws IOException {
     Palette palette;
     PackedUIntArray blocks;

@@ -11,7 +11,7 @@ import me.nullicorn.ooze.level.BlockState;
  *
  * @author Nullicorn
  */
-public class RegionBlockStateCodec extends VersionedCodec {
+public class RegionBlockStateCodec extends VersionedCodec<BlockState, NBTCompound> {
 
   private static final VersionedTag NAME_TAG       = RegionTag.BLOCK_NAME;
   private static final VersionedTag PROPERTIES_TAG = RegionTag.BLOCK_PROPERTIES;
@@ -38,6 +38,7 @@ public class RegionBlockStateCodec extends VersionedCodec {
    * @return an NBT compound resembling the inputted block state.
    * @throws IllegalArgumentException if the input state is {@code null}.
    */
+  @Override
   public NBTCompound encode(BlockState state) {
     if (state == null) {
       throw new IllegalArgumentException("null cannot be encoded as a block state");
@@ -67,6 +68,7 @@ public class RegionBlockStateCodec extends VersionedCodec {
    * @throws IllegalArgumentException if the input compound is null.
    * @throws IOException              if the compound has no {@code Name} tag.
    */
+  @Override
   public BlockState decode(NBTCompound state) throws IOException {
     if (state == null) {
       throw new IllegalArgumentException("null cannot be decoded as a block state");

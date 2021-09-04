@@ -16,7 +16,7 @@ import me.nullicorn.ooze.level.Palette;
  *
  * @author Nullicorn
  */
-public class RegionPaletteCodec extends VersionedCodec {
+public class RegionPaletteCodec extends VersionedCodec<Palette, NBTList> {
 
   private final RegionBlockStateCodec blockStateCodec;
 
@@ -43,6 +43,7 @@ public class RegionPaletteCodec extends VersionedCodec {
    * @throws IllegalArgumentException if the input palette is {@code null}.
    * @see RegionBlockStateCodec
    */
+  @Override
   public NBTList encode(Palette palette) {
     if (palette == null) {
       throw new IllegalArgumentException("null cannot be encoded as a palette");
@@ -67,6 +68,7 @@ public class RegionPaletteCodec extends VersionedCodec {
    *                                  list has no {@code Name} tag.
    * @see RegionBlockStateCodec
    */
+  @Override
   public Palette decode(NBTList palette) throws IOException {
     if (palette == null) {
       throw new IllegalArgumentException("null cannot be decoded as a palette");

@@ -8,7 +8,7 @@ import java.util.Set;
  *
  * @author Nullicorn
  */
-public abstract class VersionedCodec {
+public abstract class VersionedCodec<T, E> implements Codec<T, E> {
 
   /**
    * @throws IllegalArgumentException if the {@code tags} array is {@code null}, or if any of its
