@@ -121,7 +121,7 @@ enum RegionTag implements VersionedTag {
   PALETTE("Palette", TagType.LIST, TagType.COMPOUND, 1451),
 
   /**
-   * A {@link RegionCompactArrayCodec compact array} of 4096 integers (e.g. multiple values in a
+   * A {@link RegionBlockArrayCodec compact array} of 4096 integers (e.g. multiple values in a
    * single longs; the number of longs in the array is always less).
    * <p><br>
    * Each compacted value in the array is an index pointing to a state in the section's {@link
