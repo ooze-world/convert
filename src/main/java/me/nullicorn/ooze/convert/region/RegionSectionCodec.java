@@ -6,6 +6,7 @@ import me.nullicorn.nedit.type.NBTCompound;
 import me.nullicorn.nedit.type.NBTList;
 import me.nullicorn.ooze.convert.VersionedCodec;
 import me.nullicorn.ooze.convert.VersionedTag;
+import me.nullicorn.ooze.convert.region.array.RegionUIntArray;
 import me.nullicorn.ooze.level.Cell;
 import me.nullicorn.ooze.level.PackedUIntArray;
 import me.nullicorn.ooze.level.Palette;
@@ -15,28 +16,29 @@ import me.nullicorn.ooze.level.Palette;
  */
 public class RegionSectionCodec extends VersionedCodec<Cell, NBTCompound> {
 
-  private static final VersionedTag ALTITUDE_TAG = RegionTag.SECTION_ALTITUDE;
-  private static final VersionedTag PALETTE_TAG  = RegionTag.PALETTE;
-  private static final VersionedTag BLOCKS_TAG   = RegionTag.BLOCKS;
+  private static final VersionedTag ALTITUDE_TAG       = RegionTag.SECTION_ALTITUDE;
+  private static final VersionedTag PALETTE_TAG        = RegionTag.PALETTE;
+  private static final VersionedTag BLOCKS_TAG         = RegionTag.BLOCKS;
+  private static final int          BLOCKS_PER_SECTION = (int) Math.pow(16, 3);
 
-  private final RegionCompactArrayCodec blockArrayCodec;
-  private final RegionPaletteCodec      paletteCodec;
-  private final boolean                 useModernCodec;
+  private final RegionPaletteCodec    paletteCodec;
+  private final RegionBlockArrayCodec blockArrayCodec;
+  private final boolean               useModernEncoding;
 
   public RegionSectionCodec(int dataVersion) {
     super(dataVersion, ALTITUDE_TAG);
 
-    blockArrayCodec = new RegionCompactArrayCodec(dataVersion);
+    blockArrayCodec = new RegionBlockArrayCodec(dataVersion);
     paletteCodec = new RegionPaletteCodec(dataVersion);
 
-    useModernCodec = PALETTE_TAG.isSupported(dataVersion);
+    useModernEncoding = PALETTE_TAG.isSupported(dataVersion);
   }
 
   @Override
   public NBTCompound encode(Cell section) {
     NBTCompound encoded = new NBTCompound();
 
-    if (useModernCodec) {
+    if (useModernEncoding) {
       // Make sure the section has its own independent palette,
       // just like in vanilla.
       section = section.isolatedCopy();
@@ -61,7 +63,7 @@ public class RegionSectionCodec extends VersionedCodec<Cell, NBTCompound> {
     Palette palette;
     PackedUIntArray blocks;
 
-    if (useModernCodec) {
+    if (useModernEncoding) {
       // Read the NBT tags from the section.
       Optional<long[]> nbtBlocks = BLOCKS_TAG.valueIn(section, long[].class);
       Optional<NBTList> nbtPalette = PALETTE_TAG.valueIn(section, NBTList.class);
@@ -79,7 +81,12 @@ public class RegionSectionCodec extends VersionedCodec<Cell, NBTCompound> {
 
       // Decode the block array & palette.
       palette = paletteCodec.decode(nbtPalette.get());
-      blocks = blockArrayCodec.decode(nbtBlocks.get(), palette.magnitude());
+      blocks = blockArrayCodec.decode(RegionUIntArray.from(
+          BLOCKS_PER_SECTION,
+          palette.magnitude(),
+          nbtBlocks.get(),
+          dataVersion
+      ));
     } else {
       // TODO: 8/16/21 Implement decode() for legacy sections.
       throw new UnsupportedOperationException("Legacy section decoding is not yet supported");
