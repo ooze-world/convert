@@ -36,6 +36,11 @@ class RegionBlockStateCodecTests extends VersionedCodecTests {
 
   private static RegionBlockStateCodec testCodec;
 
+  @BeforeAll
+  static void beforeAll() {
+    testCodec = new RegionBlockStateCodec(EARLIEST_VERSION);
+  }
+
   @Override
   protected IntConsumer getVersionedConstructor() {
     return RegionBlockStateCodec::new;
@@ -44,11 +49,6 @@ class RegionBlockStateCodecTests extends VersionedCodecTests {
   @Override
   protected int[] getAcceptableVersionRange() {
     return new int[]{EARLIEST_VERSION, Integer.MAX_VALUE};
-  }
-
-  @BeforeAll
-  static void setUp() {
-    testCodec = new RegionBlockStateCodec(EARLIEST_VERSION);
   }
 
   @ParameterizedTest
