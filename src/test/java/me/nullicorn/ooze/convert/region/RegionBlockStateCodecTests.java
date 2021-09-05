@@ -6,9 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.io.IOException;
+import java.util.function.IntConsumer;
 import java.util.stream.Stream;
 import me.nullicorn.nedit.type.NBTCompound;
 import me.nullicorn.nedit.type.TagType;
+import me.nullicorn.ooze.convert.VersionedCodecTests;
 import me.nullicorn.ooze.level.BlockState;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -19,7 +21,10 @@ import org.junit.jupiter.params.provider.NullSource;
 /**
  * @author Nullicorn
  */
-class RegionBlockStateCodecTests {
+class RegionBlockStateCodecTests extends VersionedCodecTests {
+
+  // Data-version when the block-state compound was introduced.
+  private static final int EARLIEST_VERSION = 1451;
 
   // Info about a block state's "Name" tag.
   private static final String  NAME_TAG_NAME = "Name";
@@ -31,9 +36,19 @@ class RegionBlockStateCodecTests {
 
   private static RegionBlockStateCodec testCodec;
 
+  @Override
+  protected IntConsumer getVersionedConstructor() {
+    return RegionBlockStateCodec::new;
+  }
+
+  @Override
+  protected int[] getAcceptableVersionRange() {
+    return new int[]{EARLIEST_VERSION, Integer.MAX_VALUE};
+  }
+
   @BeforeAll
   static void setUp() {
-    testCodec = new RegionBlockStateCodec(1451);
+    testCodec = new RegionBlockStateCodec(EARLIEST_VERSION);
   }
 
   @ParameterizedTest
