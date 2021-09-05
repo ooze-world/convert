@@ -27,12 +27,12 @@ class RegionBlockStateCodecTests extends VersionedCodecTests {
   private static final int EARLIEST_VERSION = 1451;
 
   // Info about a block state's "Name" tag.
-  private static final String  NAME_TAG_NAME = "Name";
-  private static final TagType NAME_TAG_TYPE = TagType.STRING;
+  static final String  NAME_TAG_NAME = "Name";
+  static final TagType NAME_TAG_TYPE = TagType.STRING;
 
   // Info about a block state's "Properties" tag.
-  private static final String  PROPERTIES_TAG_NAME = "Properties";
-  private static final TagType PROPERTIES_TAG_TYPE = TagType.COMPOUND;
+  static final String  PROPERTIES_TAG_NAME = "Properties";
+  static final TagType PROPERTIES_TAG_TYPE = TagType.COMPOUND;
 
   private static RegionBlockStateCodec testCodec;
 
