@@ -33,6 +33,7 @@ public class RegionBlockArrayCodec extends VersionedCodec<PackedUIntArray, Regio
    * @throws IllegalArgumentException if the {@code array} is {@code null}.
    * @see <a href=https://wiki.vg/Chunk_Format#Compacted_data_array>Compact data array format</a>
    */
+  @Override
   public RegionUIntArray encode(PackedUIntArray array) {
     if (array == null) {
       throw new IllegalArgumentException("null array cannot be encoded");
@@ -46,6 +47,16 @@ public class RegionBlockArrayCodec extends VersionedCodec<PackedUIntArray, Regio
   }
 
   /**
+   * Shorthand for using {@link RegionUIntArray#from(int, int, long[], int) RegionUIntArray.from()}
+   * with the provided arguments and the codec's {@link #getCompatibility() data version}, then
+   * passing that array through the overloaded {@link #decode(RegionUIntArray) decode} function.
+   */
+  public PackedUIntArray decode(long[] words, int length, int magnitude) {
+    RegionUIntArray wrapper = RegionUIntArray.from(length, magnitude, words, dataVersion);
+    return decode(wrapper);
+  }
+
+  /**
    * Unpacks an array of ints from 64-bit words. More information {@link #encode(PackedUIntArray)
    * here}.
    *
@@ -54,6 +65,7 @@ public class RegionBlockArrayCodec extends VersionedCodec<PackedUIntArray, Regio
    * @throws IllegalArgumentException if the {@code array} is null.
    * @see #encode(PackedUIntArray) encode()
    */
+  @Override
   public PackedUIntArray decode(RegionUIntArray array) {
     if (array == null) {
       throw new IllegalArgumentException("null words array cannot be decoded");

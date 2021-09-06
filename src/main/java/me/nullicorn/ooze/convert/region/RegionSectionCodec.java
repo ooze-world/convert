@@ -6,7 +6,6 @@ import me.nullicorn.nedit.type.NBTCompound;
 import me.nullicorn.nedit.type.NBTList;
 import me.nullicorn.ooze.convert.VersionedCodec;
 import me.nullicorn.ooze.convert.VersionedTag;
-import me.nullicorn.ooze.convert.region.array.RegionUIntArray;
 import me.nullicorn.ooze.level.Cell;
 import me.nullicorn.ooze.level.PackedUIntArray;
 import me.nullicorn.ooze.level.Palette;
@@ -81,12 +80,7 @@ public class RegionSectionCodec extends VersionedCodec<Cell, NBTCompound> {
 
       // Decode the block array & palette.
       palette = paletteCodec.decode(nbtPalette.get());
-      blocks = blockArrayCodec.decode(RegionUIntArray.from(
-          BLOCKS_PER_SECTION,
-          palette.magnitude(),
-          nbtBlocks.get(),
-          dataVersion
-      ));
+      blocks = blockArrayCodec.decode(nbtBlocks.get(), BLOCKS_PER_SECTION, palette.magnitude());
     } else {
       // TODO: 8/16/21 Implement decode() for legacy sections.
       throw new UnsupportedOperationException("Legacy section decoding is not yet supported");
