@@ -5,7 +5,6 @@ import static me.nullicorn.ooze.convert.region.RegionBlockStateCodecTests.PROPER
 import static me.nullicorn.ooze.convert.region.RegionBlockStateCodecTests.provideBlockStates;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.Collections;
 import java.util.List;
@@ -20,7 +19,6 @@ import me.nullicorn.ooze.level.BlockState;
 import me.nullicorn.ooze.level.Palette;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullSource;
 
@@ -93,16 +91,13 @@ class RegionPaletteCodecTests extends VersionedCodecTests {
   /**
    * Provides valid block palettes for use in parameterized tests.
    */
-  static Stream<Arguments> providePalettes() {
+  static Stream<Palette> providePalettes() {
     // Borrow states from the block codec test.
-    List<BlockState> states = provideBlockStates()
-        .collect(Collectors.toList()).stream()
-        .map(arguments -> (BlockState) arguments.get()[0])
-        .collect(Collectors.toList());
+    List<BlockState> testStates = provideBlockStates().collect(Collectors.toList());
 
     return Stream.of(
-        arguments(new Palette("empty", EARLIEST_VERSION, Collections.emptyList())),
-        arguments(new Palette("filled", EARLIEST_VERSION, states))
+        new Palette("empty", EARLIEST_VERSION, Collections.emptyList()),
+        new Palette("filled", EARLIEST_VERSION, testStates)
     );
   }
 }

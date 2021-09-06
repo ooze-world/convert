@@ -94,28 +94,25 @@ class RegionBlockStateCodecTests extends VersionedCodecTests {
 
   @ParameterizedTest
   @MethodSource("provideEncodedBlockStates")
-  void decode_shouldOutputHaveSameValuesAsInput(String name, NBTCompound properties, NBTCompound state) throws IOException {
+  void decode_shouldOutputHaveSameValuesAsInput(String expectedName, NBTCompound expectedProperties, NBTCompound state) throws IOException {
     BlockState decoded = testCodec.decode(state);
 
-    assertEquals(name, decoded.getName());
-    assertEquals(properties, decoded.getProperties());
+    assertEquals(expectedName, decoded.getName());
+    assertEquals(expectedProperties, decoded.getProperties());
   }
 
   /**
    * Provides a single non-null block state for use in parameterized tests. The included states may
    * or may not have properties.
    */
-  static Stream<Arguments> provideBlockStates() {
+  static Stream<BlockState> provideBlockStates() {
     return Stream.concat(
         // No properties.
-        Stream.of(
-            arguments(new BlockState("test_state_without_properties"))
-        ),
+        Stream.of(new BlockState("test_state_without_properties")),
 
         // With properties (possible empty ones).
         provideValidProperties()
             .map(properties -> new BlockState("test_state_with_properties", properties))
-            .map(Arguments::of)
     );
   }
 
@@ -125,57 +122,49 @@ class RegionBlockStateCodecTests extends VersionedCodecTests {
    * present.
    */
   static Stream<Arguments> provideEncodedBlockStates() {
-    String nameWithProperties = "test_state_with_properties";
-
-    String nameWithoutProperties = "test_state_without_properties";
-    Stream<Arguments> argsWithoutProperties = Stream.of(arguments(
-        nameWithoutProperties,
+    String withoutPropertiesName = "test_state_without_properties";
+    Stream<Arguments> withoutProperties = Stream.of(arguments(
+        withoutPropertiesName,
         new NBTCompound(),
         new NBTCompound() {{
-          put(NAME_TAG_NAME, nameWithoutProperties);
+          put(NAME_TAG_NAME, withoutPropertiesName);
         }}
     ));
 
-    return Stream.concat(
-        // No properties provided ("Properties" tag isn't there at all).
-        argsWithoutProperties,
+    String withPropertiesName = "test_state_with_properties";
+    Stream<Arguments> withProperties = provideValidProperties()
+        .map(properties -> {
+          NBTCompound encoded = new NBTCompound() {{
+            put(NAME_TAG_NAME, withPropertiesName);
+            put(PROPERTIES_TAG_NAME, properties);
+          }};
+          return arguments(withPropertiesName, properties, encoded);
+        });
 
-        // With properties provided.
-        provideValidProperties()
-            .map(properties -> {
-              NBTCompound encoded = new NBTCompound() {{
-                put(NAME_TAG_NAME, nameWithProperties);
-                put(PROPERTIES_TAG_NAME, properties);
-              }};
-              return arguments(nameWithProperties, properties, encoded);
-            })
-    );
+    return Stream.concat(withoutProperties, withProperties);
   }
 
   /**
    * Provides NBT-encoded block states that are non-null, but have no "Name" tag, making them
    * invalid.
    */
-  static Stream<Arguments> provideInvalidEncodedBlockStates() {
-    return Stream.concat(
-        // With no valid tags.
-        Stream.of(
-            // Completely empty.
-            arguments(new NBTCompound()),
+  static Stream<NBTCompound> provideInvalidEncodedBlockStates() {
+    Stream<NBTCompound> withNoValidTags = Stream.of(
+        // Completely empty.
+        new NBTCompound(),
 
-            // With random invalid tag.
-            arguments(new NBTCompound() {{
-              put("i_dont_exist", "its true!");
-            }})
-        ),
-
-        // With valid properties, but no name tag.
-        provideValidProperties()
-            .map(properties -> new NBTCompound() {{
-              put(PROPERTIES_TAG_NAME, properties);
-            }})
-            .map(Arguments::of)
+        // With random invalid tag.
+        new NBTCompound() {{
+          put("i_dont_exist", "its true!");
+        }}
     );
+
+    Stream<NBTCompound> withNoNameTag = provideValidProperties()
+        .map(properties -> new NBTCompound() {{
+          put(PROPERTIES_TAG_NAME, properties);
+        }});
+
+    return Stream.concat(withNoValidTags, withNoNameTag);
   }
 
   /**
