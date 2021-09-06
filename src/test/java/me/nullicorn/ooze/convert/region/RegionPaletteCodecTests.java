@@ -2,7 +2,7 @@ package me.nullicorn.ooze.convert.region;
 
 import static me.nullicorn.ooze.convert.region.RegionBlockStateCodecTests.NAME_TAG_NAME;
 import static me.nullicorn.ooze.convert.region.RegionBlockStateCodecTests.PROPERTIES_TAG_NAME;
-import static me.nullicorn.ooze.convert.region.RegionBlockStateCodecTests.provideBlockStates;
+import static me.nullicorn.ooze.convert.region.RegionBlockStateCodecTests.provider_valid_states;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -30,6 +30,8 @@ class RegionPaletteCodecTests extends VersionedCodecTests {
   // Data-version when block palettes were introduced.
   private static final int EARLIEST_VERSION = 1451;
 
+  // Shared codec instance to test on.
+  // Initialized in beforeAll().
   private static RegionPaletteCodec testCodec;
 
   @BeforeAll
@@ -54,21 +56,21 @@ class RegionPaletteCodecTests extends VersionedCodecTests {
   }
 
   @ParameterizedTest
-  @MethodSource("providePalettes")
+  @MethodSource("provider_palettes")
   void encode_shouldOutputUseCorrectTagType(Palette palette) {
     NBTList encoded = testCodec.encode(palette);
     assertEquals(TagType.COMPOUND, encoded.getContentType());
   }
 
   @ParameterizedTest
-  @MethodSource("providePalettes")
+  @MethodSource("provider_palettes")
   void encode_shouldOutputBeSameSize(Palette palette) {
     NBTList encoded = testCodec.encode(palette);
     assertEquals(palette.size(), encoded.size());
   }
 
   @ParameterizedTest
-  @MethodSource("providePalettes")
+  @MethodSource("provider_palettes")
   void encode_shouldOrderBePreserved(Palette palette) {
     NBTList encoded = testCodec.encode(palette);
 
@@ -91,9 +93,9 @@ class RegionPaletteCodecTests extends VersionedCodecTests {
   /**
    * Provides valid block palettes for use in parameterized tests.
    */
-  static Stream<Palette> providePalettes() {
+  static Stream<Palette> provider_palettes() {
     // Borrow states from the block codec test.
-    List<BlockState> testStates = provideBlockStates().collect(Collectors.toList());
+    List<BlockState> testStates = provider_valid_states().collect(Collectors.toList());
 
     return Stream.of(
         new Palette("empty", EARLIEST_VERSION, Collections.emptyList()),

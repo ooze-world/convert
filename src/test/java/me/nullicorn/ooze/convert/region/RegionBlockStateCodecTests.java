@@ -34,6 +34,8 @@ class RegionBlockStateCodecTests extends VersionedCodecTests {
   static final String  PROPERTIES_TAG_NAME = "Properties";
   static final TagType PROPERTIES_TAG_TYPE = TagType.COMPOUND;
 
+  // Shared codec instance to test on.
+  // Initialized in beforeAll().
   private static RegionBlockStateCodec testCodec;
 
   @BeforeAll
@@ -58,7 +60,7 @@ class RegionBlockStateCodecTests extends VersionedCodecTests {
   }
 
   @ParameterizedTest
-  @MethodSource("provideBlockStates")
+  @MethodSource("provider_valid_states")
   void encode_shouldOutputHaveName(BlockState state) {
     NBTCompound encoded = testCodec.encode(state);
 
@@ -67,7 +69,7 @@ class RegionBlockStateCodecTests extends VersionedCodecTests {
   }
 
   @ParameterizedTest
-  @MethodSource("provideBlockStates")
+  @MethodSource("provider_valid_states")
   void encode_shouldOutputHavePropertiesWhenInputDoesToo(BlockState state) {
     NBTCompound encoded = testCodec.encode(state);
 
@@ -87,13 +89,13 @@ class RegionBlockStateCodecTests extends VersionedCodecTests {
   }
 
   @ParameterizedTest
-  @MethodSource("provideInvalidEncodedBlockStates")
+  @MethodSource("provider_invalid_encodedStates")
   void decode_shouldRejectCompoundsWithoutName(NBTCompound state) {
     assertThrows(IOException.class, () -> testCodec.decode(state));
   }
 
   @ParameterizedTest
-  @MethodSource("provideEncodedBlockStates")
+  @MethodSource("provider_valid_encodedStates")
   void decode_shouldOutputHaveSameValuesAsInput(String expectedName, NBTCompound expectedProperties, NBTCompound state) throws IOException {
     BlockState decoded = testCodec.decode(state);
 
@@ -105,13 +107,13 @@ class RegionBlockStateCodecTests extends VersionedCodecTests {
    * Provides a single non-null block state for use in parameterized tests. The included states may
    * or may not have properties.
    */
-  static Stream<BlockState> provideBlockStates() {
+  static Stream<BlockState> provider_valid_states() {
     return Stream.concat(
         // No properties.
         Stream.of(new BlockState("test_state_without_properties")),
 
         // With properties (possible empty ones).
-        provideValidProperties()
+        provider_valid_properties()
             .map(properties -> new BlockState("test_state_with_properties", properties))
     );
   }
@@ -121,7 +123,7 @@ class RegionBlockStateCodecTests extends VersionedCodecTests {
    * will always have a "Name" and "Properties" tag, although there may not be any properties
    * present.
    */
-  static Stream<Arguments> provideEncodedBlockStates() {
+  static Stream<Arguments> provider_valid_encodedStates() {
     String withoutPropertiesName = "test_state_without_properties";
     Stream<Arguments> withoutProperties = Stream.of(arguments(
         withoutPropertiesName,
@@ -132,7 +134,7 @@ class RegionBlockStateCodecTests extends VersionedCodecTests {
     ));
 
     String withPropertiesName = "test_state_with_properties";
-    Stream<Arguments> withProperties = provideValidProperties()
+    Stream<Arguments> withProperties = provider_valid_properties()
         .map(properties -> {
           NBTCompound encoded = new NBTCompound() {{
             put(NAME_TAG_NAME, withPropertiesName);
@@ -148,7 +150,7 @@ class RegionBlockStateCodecTests extends VersionedCodecTests {
    * Provides NBT-encoded block states that are non-null, but have no "Name" tag, making them
    * invalid.
    */
-  static Stream<NBTCompound> provideInvalidEncodedBlockStates() {
+  static Stream<NBTCompound> provider_invalid_encodedStates() {
     Stream<NBTCompound> withNoValidTags = Stream.of(
         // Completely empty.
         new NBTCompound(),
@@ -159,7 +161,7 @@ class RegionBlockStateCodecTests extends VersionedCodecTests {
         }}
     );
 
-    Stream<NBTCompound> withNoNameTag = provideValidProperties()
+    Stream<NBTCompound> withNoNameTag = provider_valid_properties()
         .map(properties -> new NBTCompound() {{
           put(PROPERTIES_TAG_NAME, properties);
         }});
@@ -171,7 +173,7 @@ class RegionBlockStateCodecTests extends VersionedCodecTests {
    * Provides a block state's "Properties" tag for use in parameterized tests. The included
    * compounds may be empty, but are never null.
    */
-  static Stream<NBTCompound> provideValidProperties() {
+  static Stream<NBTCompound> provider_valid_properties() {
     return Stream.of(
         // Empty.
         new NBTCompound(),

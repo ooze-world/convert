@@ -125,21 +125,21 @@ abstract class RegionUIntArrayTests {
 
   @ParameterizedTest
   @MethodSource("provider_lengthsAndMagnitudes")
-  void length_matchesFactoryInput(int length, int magnitude) {
+  void length_shouldMatchFactoryInput(int length, int magnitude) {
     RegionUIntArray actual = RegionUIntArray.from(length, magnitude, dataVersion);
     assertEquals(length, actual.length(), "Incorrect array length");
   }
 
   @ParameterizedTest
   @MethodSource("provider_lengthsAndMagnitudes")
-  void magnitude_matchesFactoryInput(int length, int magnitude) {
+  void magnitude_shouldMatchFactoryInput(int length, int magnitude) {
     RegionUIntArray actual = RegionUIntArray.from(length, magnitude, dataVersion);
     assertEquals(magnitude, actual.magnitude(), "Incorrect array magnitude");
   }
 
   @ParameterizedTest
   @MethodSource("provider_lengthsAndMagnitudes")
-  void words_hasExpectedLength(int length, int magnitude) {
+  void words_shouldHaveExpectedLength(int length, int magnitude) {
     long[] expected = createEmptyWords(length, magnitude);
     long[] actual = RegionUIntArray.from(length, magnitude, dataVersion).words();
 
@@ -148,7 +148,7 @@ abstract class RegionUIntArrayTests {
 
   @ParameterizedTest
   @MethodSource("provider_lengthsAndMagnitudes")
-  void get_returnsSetValue(int length, int magnitude) throws NoSuchAlgorithmException {
+  void get_shouldReturnInputValues(int length, int magnitude) throws NoSuchAlgorithmException {
     long[] words = createEmptyWords(length, magnitude);
 
     int[] values = provider_arrayValues(length, magnitude);
@@ -164,7 +164,7 @@ abstract class RegionUIntArrayTests {
 
   @ParameterizedTest
   @MethodSource("provider_lengthsAndMagnitudes")
-  void set_flipsCorrectBits(int length, int magnitude) throws NoSuchAlgorithmException {
+  void set_shouldFlipCorrectBits(int length, int magnitude) throws NoSuchAlgorithmException {
     long[] expected = createEmptyWords(length, magnitude);
     RegionUIntArray actual = RegionUIntArray.from(length, magnitude, dataVersion);
 
@@ -179,7 +179,7 @@ abstract class RegionUIntArrayTests {
 
   @ParameterizedTest
   @MethodSource("provider_lengthsAndMagnitudes")
-  void set_replacesExistingValues(int length, int magnitude) throws NoSuchAlgorithmException {
+  void set_shouldReplaceExistingValues(int length, int magnitude) throws NoSuchAlgorithmException {
     RegionUIntArray actual = RegionUIntArray.from(length, magnitude, dataVersion);
     int[] values = provider_arrayValues(length, magnitude);
 
