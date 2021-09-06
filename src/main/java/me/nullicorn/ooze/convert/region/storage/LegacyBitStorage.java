@@ -41,44 +41,49 @@ class LegacyBitStorage extends RegionUIntArray {
 
     if (index < 0 || index >= length) {
       throw new ArrayIndexOutOfBoundsException(index);
-
     } else if (doReplace && (replacement < 0 || replacement > valueMask)) {
       throw new IllegalArgumentException(replacement + " is invalid for magnitude " + magnitude);
     }
 
-    int bitIndex = index * magnitude;
-    int bitOffset = bitIndex % Long.SIZE;
-    int wordIndex = bitIndex / Long.SIZE;
+    // Only bitIndex needs to be a long because it's value could potentially overflow an int.
+    long bitIndex = (long) index * magnitude;
+    int bitOffset = (int) (bitIndex % Long.SIZE);
+    int wordIndex = (int) (bitIndex / Long.SIZE);
 
-    int existingValue = 0;
-    int mask = valueMask;
+    int prevValue = 0;
+    long mask = valueMask;
 
-    // Keep taking longs until we've read/replaced each bit in the value.
-    int totalBitsSeen = 0;
-    while (totalBitsSeen < magnitude) {
+    // Keep taking longs until we've seen/replaced each bit in the value.
+    int bitsSeen = 0;
+    while (bitsSeen < magnitude) {
+      long word = words[wordIndex];
+
       // Get the value's bits in the current word.
-      existingValue |= (mask & (words[wordIndex] >>> bitOffset)) << totalBitsSeen;
+      prevValue |= (mask & (word >>> bitOffset)) << bitsSeen;
 
       if (doReplace) {
-        // Replace the existing bits for the value with the replacement's. This is done by negating
-        // the mask (so no other values are affected) and combining it with the value itself.
-        words[wordIndex] &= ~(mask << bitOffset) | (replacement << bitOffset);
+        // Clear the existing value's bits, then insert the new one's.
+        word &= ~(mask << bitOffset);
+        word |= ((long) replacement << bitOffset);
+        words[wordIndex] = word;
       }
 
-      // Determine how many of the value's bits we read/replaced from the current word.
-      int bitsSeen = Math.min(magnitude - totalBitsSeen, Long.SIZE - bitOffset);
-      totalBitsSeen += bitsSeen;
+      // Determine how many of the value's bits we just read/replaced from the current word.
+      //  - magnitude - bitsSeen  == How many bits we still *needed* to see.
+      //  - Long.SIZE - bitOffset == How many bits we could've possibly seen from the word.
+      // Whichever is lower is the correct amount.
+      int bitsJustSeen = Math.min(magnitude - bitsSeen, Long.SIZE - bitOffset);
+      bitsSeen += bitsJustSeen;
 
-      // If the value has more bits in the next word...
-      if (totalBitsSeen < magnitude) {
-        wordIndex++;
+      // Move onto the next word (and start from the rightmost bit, aka the LSB).
+      wordIndex++;
+      bitOffset = 0;
 
-        // Shrink the mask & replacement so that they only cover unread/un-replaced bits.
-        mask >>>= bitsSeen;
-        replacement >>>= bitsSeen;
-      }
+      // Shrink the mask & replacement so that they only cover unread/un-replaced bits.
+      mask >>>= bitsJustSeen;
+      replacement >>>= bitsJustSeen;
     }
 
-    return existingValue;
+    return prevValue;
   }
 }

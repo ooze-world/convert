@@ -22,7 +22,7 @@ class BitStorage extends RegionUIntArray {
    * A bitmask over however many least-significant bits are specified by the {@link #magnitude()
    * magnitude}.
    */
-  private final int valueMask;
+  private final long valueMask;
 
   /**
    * The number of uints that can be held within each 64-bit {@link #words() words}. Equivalent to
@@ -43,7 +43,7 @@ class BitStorage extends RegionUIntArray {
 
   @Override
   protected int getWordsNeeded(int length, int magnitude) {
-    return (int) Math.ceil(length * magnitude / (double) valuesPerWord(magnitude));
+    return (int) Math.ceil((double) length / valuesPerWord(magnitude));
   }
 
   @Override
@@ -68,7 +68,13 @@ class BitStorage extends RegionUIntArray {
     // Get (and replace, if necessary) the value.
     long existingValue = valueMask & (words[wordIndex] >>> bitOffset);
     if (doReplace) {
-      words[wordIndex] &= ~(valueMask << bitOffset) | (replacement << bitOffset);
+      long word = words[wordIndex];
+
+      // Clear the previous value, then insert the new one.
+      word &= ~(valueMask << bitOffset);
+      word |= ((long) replacement << bitOffset);
+
+      words[wordIndex] = word;
     }
 
     return (int) existingValue;
