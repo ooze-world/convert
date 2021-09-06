@@ -1,7 +1,7 @@
 package me.nullicorn.ooze.convert.region;
 
 import me.nullicorn.ooze.convert.VersionedCodec;
-import me.nullicorn.ooze.convert.region.array.RegionUIntArray;
+import me.nullicorn.ooze.convert.region.storage.RegionUIntArray;
 import me.nullicorn.ooze.level.PackedUIntArray;
 
 /**

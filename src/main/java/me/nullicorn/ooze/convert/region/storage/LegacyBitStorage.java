@@ -1,4 +1,4 @@
-package me.nullicorn.ooze.convert.region.array;
+package me.nullicorn.ooze.convert.region.storage;
 
 import me.nullicorn.ooze.level.BitHelper;
 
