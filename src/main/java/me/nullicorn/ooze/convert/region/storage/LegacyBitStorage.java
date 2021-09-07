@@ -29,6 +29,9 @@ class LegacyBitStorage extends RegionUIntArray {
 
   @Override
   protected int getWordsNeeded(int length, int magnitude) {
+    if (magnitude == 0) {
+      return 0;
+    }
     int bytesNeeded = BitHelper.bytesNeeded(length * magnitude);
     return (int) Math.ceil((double) bytesNeeded / Long.BYTES);
   }
@@ -43,6 +46,8 @@ class LegacyBitStorage extends RegionUIntArray {
       throw new ArrayIndexOutOfBoundsException(index);
     } else if (doReplace && (replacement < 0 || replacement > valueMask)) {
       throw new IllegalArgumentException(replacement + " is invalid for magnitude " + magnitude);
+    } else if (magnitude == 0) {
+      return 0;
     }
 
     // Only bitIndex needs to be a long because it's value could potentially overflow an int.

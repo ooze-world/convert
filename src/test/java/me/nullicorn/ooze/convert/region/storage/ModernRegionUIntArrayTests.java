@@ -29,6 +29,10 @@ class ModernRegionUIntArrayTests extends RegionUIntArrayTests {
 
   @Override
   protected void set(int index, int value, long[] words, int magnitude) {
+    if (magnitude == 0) {
+      return;
+    }
+
     long valueMask = (1 << magnitude) - 1;
     int valuesPerLong = Long.SIZE / magnitude;
 

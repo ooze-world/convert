@@ -4,12 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.stream.Stream;
-import me.nullicorn.ooze.level.BitHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -19,7 +15,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 /**
  * @author Nullicorn
  */
-abstract class RegionUIntArrayTests {
+public abstract class RegionUIntArrayTests {
 
   // Fall-back values used if not specified in any of the test methods.
   // Initialized in setUp().
@@ -75,7 +71,7 @@ abstract class RegionUIntArrayTests {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {-33, -32, -31, -2, -1, 0, 32, 33})
+  @ValueSource(ints = {-33, -32, -31, -2, -1, 32, 33})
   void factory_shouldRejectInvalidMagnitudes(int magnitude) {
     // Creates the word array using abs(magnitude), otherwise this might throw prematurely.
     long[] words = createEmptyWords(length, Math.abs(magnitude));
@@ -148,7 +144,7 @@ abstract class RegionUIntArrayTests {
 
   @ParameterizedTest
   @MethodSource("provider_lengthsAndMagnitudes")
-  void get_shouldReturnInputValues(int length, int magnitude) throws NoSuchAlgorithmException {
+  void get_shouldReturnInputValues(int length, int magnitude) {
     long[] words = createEmptyWords(length, magnitude);
 
     int[] values = provider_arrayValues(length, magnitude);
@@ -164,7 +160,7 @@ abstract class RegionUIntArrayTests {
 
   @ParameterizedTest
   @MethodSource("provider_lengthsAndMagnitudes")
-  void set_shouldFlipCorrectBits(int length, int magnitude) throws NoSuchAlgorithmException {
+  void set_shouldFlipCorrectBits(int length, int magnitude) {
     long[] expected = createEmptyWords(length, magnitude);
     RegionUIntArray actual = RegionUIntArray.from(length, magnitude, dataVersion);
 
@@ -179,7 +175,7 @@ abstract class RegionUIntArrayTests {
 
   @ParameterizedTest
   @MethodSource("provider_lengthsAndMagnitudes")
-  void set_shouldReplaceExistingValues(int length, int magnitude) throws NoSuchAlgorithmException {
+  void set_shouldReplaceExistingValues(int length, int magnitude) {
     RegionUIntArray actual = RegionUIntArray.from(length, magnitude, dataVersion);
     int[] values = provider_arrayValues(length, magnitude);
 
@@ -209,72 +205,30 @@ abstract class RegionUIntArrayTests {
   }
 
   /**
-   * Provides valid {@link RegionUIntArray#length() length} values for use in testing.
+   * @see RegionUIntArrayTestHelper#provider_lengths()
    */
   static int[] provider_lengths() {
-    return new int[]{0, 1, 2, 5, 10, 32, 1024, 4096};
+    return RegionUIntArrayTestHelper.provider_lengths();
   }
 
   /**
-   * Provides valid {@link RegionUIntArray#magnitude() magnitude} values for use in testing.
+   * @see RegionUIntArrayTestHelper#provider_magnitudes()
    */
   static int[] provider_magnitudes() {
-    // Fill an array with magnitudes 1 through 30.
-    int[] magnitudes = new int[Integer.SIZE - 2];
-    for (int m = 1; m < Integer.SIZE - 1; m++) {
-      magnitudes[m - 1] = m;
-    }
-    return magnitudes;
+    return RegionUIntArrayTestHelper.provider_magnitudes();
   }
 
   /**
-   * Provides sample uints that can be used to populate test arrays. The returned array will have
-   * {@code length} number of elements, each using up {@code magnitude} number of bits at most.
+   * @see RegionUIntArrayTestHelper#provider_arrayValues(int, int)
    */
-  static int[] provider_arrayValues(int length, int magnitude) throws NoSuchAlgorithmException {
-    int mask = BitHelper.createBitMask(magnitude);
-    MessageDigest md5 = MessageDigest.getInstance("MD5");
-
-    int[] output = new int[length];
-
-    for (int i = 0; i < length; i++) {
-      // Generate some bytes.
-      byte[] bytes = new byte[128];
-      for (int b = 0; b < bytes.length; b++) {
-        bytes[b] = (byte) (i * b * 255 % 100 + magnitude);
-      }
-
-      // Hash the byte array.
-      byte[] hashedBytes = md5.digest(bytes);
-
-      // Combine the hash's bytes into a single int.
-      int value = 0;
-      for (int b = 0, j = 0; b < magnitude; b += Byte.SIZE, j++) {
-        value |= (hashedBytes[j] << b);
-      }
-
-      // Remove extra bits.
-      output[i] = value & mask;
-    }
-
-    return output;
+  static int[] provider_arrayValues(int length, int magnitude) {
+    return RegionUIntArrayTestHelper.provider_arrayValues(length, magnitude);
   }
 
   /**
-   * Combines {@link #provider_lengths()} and {@link #provider_magnitudes()} into an output with all
-   * possible combinations of both. In the resulting arguments, the {@code length} comes first,
-   * followed by the {@code magnitude}.
+   * @see RegionUIntArrayTestHelper#provider_lengthsAndMagnitudes()
    */
   static Stream<Arguments> provider_lengthsAndMagnitudes() {
-    Stream.Builder<Arguments> builder = Stream.builder();
-
-    // Combine each valid length and magnitude as an argument pair.
-    for (int length : provider_lengths()) {
-      for (int magnitude : provider_magnitudes()) {
-        builder.accept(arguments(length, magnitude));
-      }
-    }
-
-    return builder.build();
+    return RegionUIntArrayTestHelper.provider_lengthsAndMagnitudes();
   }
 }

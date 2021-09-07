@@ -15,7 +15,9 @@ class BitStorage extends RegionUIntArray {
    * @return the number of uints that can be stored in a single 64-bit word ({@code long})..
    */
   private static int valuesPerWord(int magnitude) {
-    return Long.SIZE / magnitude;
+    return magnitude == 0
+        ? 0
+        : Long.SIZE / magnitude;
   }
 
   /**
@@ -43,7 +45,9 @@ class BitStorage extends RegionUIntArray {
 
   @Override
   protected int getWordsNeeded(int length, int magnitude) {
-    return (int) Math.ceil((double) length / valuesPerWord(magnitude));
+    return magnitude == 0
+        ? 0
+        : (int) Math.ceil((double) length / valuesPerWord(magnitude));
   }
 
   @Override
@@ -59,6 +63,10 @@ class BitStorage extends RegionUIntArray {
 
     } else if (doReplace && BitHelper.widthInBits(replacement) > magnitude) {
       throw new IllegalArgumentException(replacement + " is not valid for magnitude: " + magnitude);
+
+    } else if (magnitude == 0) {
+      // Everything is zero when magnitude == 0. Nothing to replace either.
+      return 0;
     }
 
     // Determine which word the value is in, and how many bits from the right (LSB) it is.

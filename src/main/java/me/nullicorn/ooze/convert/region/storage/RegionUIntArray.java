@@ -47,8 +47,8 @@ public abstract class RegionUIntArray {
   private static void validateLengthAndMagnitude(int length, int magnitude) {
     if (length < 0) {
       throw new NegativeArraySizeException("length cannot be negative" + length);
-    } else if (magnitude <= 0 || magnitude >= Integer.SIZE) {
-      throw new IllegalArgumentException("magnitude must be in range (0, 32): " + magnitude);
+    } else if (magnitude < 0 || magnitude >= Integer.SIZE) {
+      throw new IllegalArgumentException("magnitude must be in range [0, 32): " + magnitude);
     }
   }
 
@@ -98,9 +98,9 @@ public abstract class RegionUIntArray {
    * Called on construction to determine how long the {@link #words() words} array should be.
    *
    * @param length    A positive integer indicating the array's required capacity.
-   * @param magnitude A positive integer from 1 to 31
+   * @param magnitude A positive integer from 0 to 31
    * @return the number of {@code long}s needed for an array with the given {@code length} and
-   * {@code magnitude}.
+   * {@code magnitude}. If {@code magnitude == 0}, the return value must be {@code 0}.
    * @see #length()
    * @see #magnitude()
    */
