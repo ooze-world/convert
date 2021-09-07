@@ -265,6 +265,14 @@ enum RegionTag implements VersionedTag {
    */
   ENTITY_STORAGE_POS("Position", TagType.INT_ARRAY, 2679);
 
+  /**
+   * The highest known version recognized by the enum's tags. This exists to prevent future versions
+   * from using the current codecs, which could potentially be outdated and/or incompatible.
+   * <p>
+   * TODO (ongoing): Update this for each major Minecraft version.
+   */
+  private static final int HIGHEST_ALLOWED_VERSION = 2730;
+
   private final String  tagName;
   private final TagType tagType;
   private final TagType listType;
@@ -276,7 +284,7 @@ enum RegionTag implements VersionedTag {
   }
 
   RegionTag(String tagName, TagType tagType, int since) {
-    this(tagName, tagType, null, since, Integer.MAX_VALUE);
+    this(tagName, tagType, null, since, HIGHEST_ALLOWED_VERSION);
   }
 
   RegionTag(String tagName, TagType tagType, int since, int until) {
@@ -288,7 +296,7 @@ enum RegionTag implements VersionedTag {
   }
 
   RegionTag(String tagName, TagType tagType, TagType listType, int since) {
-    this(tagName, tagType, listType, since, Integer.MAX_VALUE);
+    this(tagName, tagType, listType, since, HIGHEST_ALLOWED_VERSION);
   }
 
   RegionTag(String tagName, TagType tagType, TagType listType, int since, int until) {
