@@ -46,7 +46,7 @@ public abstract class RegionUIntArray {
    */
   private static void validateLengthAndMagnitude(int length, int magnitude) {
     if (length < 0) {
-      throw new NegativeArraySizeException("length cannot be negative" + length);
+      throw new NegativeArraySizeException("length cannot be negative: " + length);
     } else if (magnitude < 0 || magnitude >= Integer.SIZE) {
       throw new IllegalArgumentException("magnitude must be in range [0, 32): " + magnitude);
     }
