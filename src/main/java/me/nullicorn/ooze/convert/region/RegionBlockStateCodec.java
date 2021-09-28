@@ -2,6 +2,7 @@ package me.nullicorn.ooze.convert.region;
 
 import java.io.IOException;
 import me.nullicorn.nedit.type.NBTCompound;
+import me.nullicorn.ooze.convert.MalformedInputException;
 import me.nullicorn.ooze.convert.VersionedCodec;
 import me.nullicorn.ooze.convert.VersionedTag;
 import me.nullicorn.ooze.level.BlockState;
@@ -44,19 +45,18 @@ public class RegionBlockStateCodec extends VersionedCodec<BlockState, NBTCompoun
       throw new IllegalArgumentException("null cannot be encoded as a block state");
     }
 
-    NBTCompound encoded = new NBTCompound();
+    NBTCompound output = new NBTCompound();
+    setTagValue(NAME_TAG, state.getName(), output);
 
-    NAME_TAG.setValueIn(encoded, state.getName());
     if (state.hasProperties()) {
-      // Copy the properties to a mutable compound so
-      // that the caller can modify them if needed.
+      // Copy the properties to a mutable compound so that the caller can modify them if needed.
       NBTCompound properties = new NBTCompound();
       properties.putAll(state.getProperties());
 
-      PROPERTIES_TAG.setValueIn(encoded, properties);
+      setTagValue(PROPERTIES_TAG, properties, output);
     }
 
-    return encoded;
+    return output;
   }
 
   /**
@@ -74,17 +74,15 @@ public class RegionBlockStateCodec extends VersionedCodec<BlockState, NBTCompoun
       throw new IllegalArgumentException("null cannot be decoded as a block state");
     }
 
-    return NAME_TAG
-        .valueIn(state, String.class)
-        .map(name -> {
-          // Use an empty compound if the state
-          // has no properties.
-          NBTCompound properties = PROPERTIES_TAG
-              .valueIn(state, NBTCompound.class)
-              .orElseGet(NBTCompound::new);
+    String name = getTagValue(NAME_TAG, state)
+        .map(String.class::cast)
+        .orElseThrow(() -> new MalformedInputException("block state", "has no name"));
 
-          // Create the final state.
-          return new BlockState(name, properties);
-        }).orElseThrow(() -> new IOException("State has no name: " + state));
+    NBTCompound properties = getTagValue(PROPERTIES_TAG, state)
+        .map(NBTCompound.class::cast)
+        .orElseGet(NBTCompound::new);
+
+    // TODO: 9/27/21 Provide `isEmpty` value if state is air.
+    return new BlockState(name, properties);
   }
 }

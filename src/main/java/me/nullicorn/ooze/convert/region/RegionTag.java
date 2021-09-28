@@ -1,8 +1,5 @@
 package me.nullicorn.ooze.convert.region;
 
-import java.util.Optional;
-import me.nullicorn.nedit.type.NBTCompound;
-import me.nullicorn.nedit.type.NBTList;
 import me.nullicorn.nedit.type.TagType;
 import me.nullicorn.ooze.convert.VersionedTag;
 
@@ -113,9 +110,6 @@ enum RegionTag implements VersionedTag {
    * Each block state is a compound containing a {@link #BLOCK_NAME name}, and optionally {@link
    * #BLOCK_PROPERTIES extra properties}.
    * <p><br>
-   * Data versions prior to {@code 1451} (1.13.x) should use {@link #BLOCKS_LEGACY}, {@link
-   * #BLOCK_STATES_LEGACY}, and {@link #BLOCK_EXTENSIONS_LEGACY} instead.
-   * <p><br>
    * Located in the compounds of a chunk's {@link #CHUNK_SECTIONS section list}.
    */
   PALETTE("Palette", TagType.LIST, TagType.COMPOUND, 1451),
@@ -131,50 +125,6 @@ enum RegionTag implements VersionedTag {
    * Located in the compounds of a chunk's {@link #CHUNK_SECTIONS section list}.
    */
   BLOCKS("BlockStates", TagType.LONG_ARRAY, 1451),
-
-  /**
-   * An array of 4096 block IDs for the section. Blocks appear in YZX order, meaning all blocks with
-   * the same Z and Y positions will be adjacent in the array.
-   * <p><br>
-   * "Block ID" refers to the unique numeric identifiers assigned to blocks and items in older
-   * versions of Minecraft. As of data version {@code 1451} (1.13.x), this tag is deprecated in
-   * favor of {@link #BLOCKS} and {@link #PALETTE}.
-   * <p><br>
-   * Located in the compounds of a chunk's {@link #CHUNK_SECTIONS section list}.
-   */
-  BLOCKS_LEGACY("Blocks", TagType.BYTE_ARRAY, 99, 1450),
-
-  /**
-   * An array of 2048 octets, each containing two of the data/damage values for corresponding blocks
-   * in the {@link #BLOCKS_LEGACY block array}.
-   * <p><br>
-   * Each octet contains two data/damage values. Given an index in the block array, the
-   * corresponding data value can be found in the octet at {@code index / 2}. Even-number indices
-   * use the octet's lowest four bits, and odd-number indices use the highest 4 bits.
-   * <p><br>
-   * As of data version {@code 1451} (1.13.x), this tag is deprecated in favor of {@link #BLOCKS}
-   * and {@link #PALETTE}.
-   * <p><br>
-   * Located in the compounds of a chunk's {@link #CHUNK_SECTIONS section list}.
-   */
-  BLOCK_STATES_LEGACY("Data", TagType.BYTE_ARRAY, 99, 1450),
-
-  /**
-   * An optional array of 2048 octets, each containing a pair of 4-bit values that can be used to
-   * extend the {@link #BLOCKS_LEGACY block array}.
-   * <p><br>
-   * Extension allows block IDs to use up to 12 bits, rather than the usual 8-bit cap imposed by the
-   * block array. Extensions are applied by taking the corresponding 4 bits from this array,
-   * left-shifting them 8 bits, and then adding the result to the corresponding block ID. The 4-bit
-   * groups of this array are indexed exactly the same as the {@link #BLOCK_STATES_LEGACY data
-   * array}.
-   * <p><br>
-   * As of data version {@code 1451} (1.13.x), this tag is deprecated in favor of {@link #BLOCKS}
-   * and {@link #PALETTE}.
-   * <p><br>
-   * Located in the compounds of a chunk's {@link #CHUNK_SECTIONS section list}.
-   */
-  BLOCK_EXTENSIONS_LEGACY("Add", TagType.BYTE_ARRAY, 99, 1450),
 
   /*
    * Tags that make up entries of a section's "Palette".
@@ -318,71 +268,28 @@ enum RegionTag implements VersionedTag {
   }
 
   @Override
-  public String tagName() {
+  public String getName() {
     return tagName;
   }
 
   @Override
-  public TagType tagType() {
+  public TagType getType() {
     return tagType;
+  }
+
+  @Override
+  public TagType getContentType() {
+    if (tagType != TagType.LIST) {
+      throw new UnsupportedOperationException("Not a list: " + toString());
+    }
+    return listType != null
+        ? listType
+        : TagType.END;
   }
 
   @Override
   public boolean isSupported(int dataVersion) {
     return dataVersion >= minVersion && dataVersion <= maxVersion;
-  }
-
-  @Override
-  public <T> Optional<T> valueIn(NBTCompound compound, Class<T> runtimeType) {
-    if (compound == null) {
-      throw new IllegalArgumentException("Cannot get value of tag " + this + " from null compound");
-    }
-
-    // Make sure the runtime type matches that of the
-    // NBT type.
-    Class<?> expectedClass = tagType.getRuntimeType();
-    if (runtimeType != expectedClass) {
-      throw new IllegalArgumentException("Runtime type should be " + expectedClass +
-                                         ", not " + runtimeType);
-    }
-
-    // Get the value and make sure it is the correct
-    // type.
-    Object value = compound.get(tagName());
-    if (value == null || !tagType.getRuntimeType().isAssignableFrom(value.getClass())) {
-      return Optional.empty();
-    }
-
-    // Suppressed because class is checked above.
-    // noinspection unchecked
-    return (Optional<T>) Optional.of(value);
-  }
-
-  @Override
-  public void setValueIn(NBTCompound compound, Object value) {
-    if (compound == null) {
-      throw new IllegalArgumentException("Cannot set tag " + this + " for null compound");
-    } else if (value == null) {
-      throw new IllegalArgumentException("null is not a valid value for tag " + this);
-    } else if (tagType != TagType.fromObject(value)) {
-      // The value cannot be converted to the correct NBT type.
-      throw new IllegalArgumentException("Invalid value for tag " + this + ": " + value);
-    }
-
-    // If the tag is a list, make sure the content type is correct.
-    if (value instanceof NBTList && listType != null) {
-      NBTList list = (NBTList) value;
-      TagType actualListType = list.getContentType();
-
-      if (listType != actualListType) {
-        // The value is a list, but it's element-type doesn't match the expected one.
-        throw new IllegalArgumentException("Tag " + this + " expects a list of " + list +
-                                           ", but got a list of " + actualListType +
-                                           ": " + value);
-      }
-    }
-
-    compound.put(tagName, value);
   }
 
   @Override
