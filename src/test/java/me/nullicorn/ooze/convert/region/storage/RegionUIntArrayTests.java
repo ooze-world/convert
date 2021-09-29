@@ -1,12 +1,12 @@
 package me.nullicorn.ooze.convert.region.storage;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.stream.Stream;
+import me.nullicorn.ooze.level.BitHelper;
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -53,7 +53,7 @@ public abstract class RegionUIntArrayTests {
 
   @ParameterizedTest
   @ValueSource(ints = {-1, -8, -64, -128, -4096})
-  void factory_shouldRejectNegativeLengths(int length) {
+  void factory_shouldThrowIfLengthIsNegative(int length) {
     // Creates the word array using abs(length), otherwise this might throw prematurely.
     long[] words = createEmptyWords(Math.abs(length), magnitude);
 
@@ -72,7 +72,7 @@ public abstract class RegionUIntArrayTests {
 
   @ParameterizedTest
   @ValueSource(ints = {-33, -32, -31, -2, -1, 32, 33})
-  void factory_shouldRejectInvalidMagnitudes(int magnitude) {
+  void factory_shouldThrowIfMagnitudeIsOutOfBounds(int magnitude) {
     // Creates the word array using abs(magnitude), otherwise this might throw prematurely.
     long[] words = createEmptyWords(length, Math.abs(magnitude));
 
@@ -90,33 +90,32 @@ public abstract class RegionUIntArrayTests {
   }
 
   @ParameterizedTest
-  @MethodSource("provider_lengths")
-  void factory_shouldAcceptValidLengths(int length) {
-    long[] words = createEmptyWords(length, magnitude);
-
-    assertDoesNotThrow(
-        () -> RegionUIntArray.from(length, magnitude, dataVersion),
-        "Array factory threw exception when given a valid length"
-    );
-    assertDoesNotThrow(
-        () -> RegionUIntArray.from(length, magnitude, words, dataVersion),
-        "Array factory (words provided) threw exception when given a valid length"
+  @MethodSource("provider_lengthsAndMagnitudes")
+  void factory_shouldThrowIfWordsArrayIsNull(int length, int magnitude) {
+    assertThrows(IllegalArgumentException.class,
+        () -> RegionUIntArray.from(length, magnitude, null, dataVersion)
     );
   }
 
   @ParameterizedTest
-  @MethodSource("provider_magnitudes")
-  void factory_shouldAcceptValidMagnitudes(int magnitude) {
-    long[] words = createEmptyWords(length, magnitude);
+  @MethodSource("provider_lengthsAndMagnitudes")
+  void factory_shouldThrowIfWordsArrayIsWrongLength(int length, int magnitude) {
+    int expectedLength = createEmptyWords(length, magnitude).length;
 
-    assertDoesNotThrow(
-        () -> RegionUIntArray.from(length, magnitude, dataVersion),
-        "Array factory threw exception when given a valid magnitude"
-    );
-    assertDoesNotThrow(
-        () -> RegionUIntArray.from(length, magnitude, words, dataVersion),
-        "Array factory (words provided) threw exception when given a valid magnitude"
-    );
+    int range = 500;
+    int min = Math.max(-range, 0);
+    int max = expectedLength + range - 1;
+
+    for (int badLength = min; badLength < max; badLength++) {
+      if (badLength != expectedLength) {
+        long[] wordsWithWrongLength = new long[badLength];
+
+        assertThrows(IllegalArgumentException.class,
+            () -> RegionUIntArray.from(length, magnitude, wordsWithWrongLength, dataVersion),
+            String.format("Bad length didn't throw: %d (should be %d)", badLength, expectedLength)
+        );
+      }
+    }
   }
 
   @ParameterizedTest
@@ -140,6 +139,23 @@ public abstract class RegionUIntArrayTests {
     long[] actual = RegionUIntArray.from(length, magnitude, dataVersion).words();
 
     assertEquals(expected.length, actual.length, "Incorrect number of words");
+  }
+
+  @ParameterizedTest
+  @MethodSource("provider_lengthsAndMagnitudes")
+  void get_shouldThrowIfIndexIsOutOfBounds(int length, int magnitude) {
+    RegionUIntArray array = RegionUIntArray.from(length, magnitude, dataVersion);
+
+    int range = 500;
+    int min = -range;
+    int max = array.length() + range - 1;
+
+    for (int i = min; i < max; i++) {
+      if (i < 0 || i >= array.length()) {
+        int badIndex = i; // Required so index can be used inside the lambda.
+        assertThrows(ArrayIndexOutOfBoundsException.class, () -> array.get(badIndex));
+      }
+    }
   }
 
   @ParameterizedTest
@@ -204,19 +220,61 @@ public abstract class RegionUIntArrayTests {
     }
   }
 
-  /**
-   * @see RegionUIntArrayTestHelper#provider_lengths()
-   */
-  static int[] provider_lengths() {
-    return RegionUIntArrayTestHelper.provider_lengths();
+  @ParameterizedTest
+  @MethodSource("provider_lengthsAndMagnitudes")
+  void set_shouldThrowIfIndexIsOutOfBounds(int length, int magnitude) {
+    RegionUIntArray array = RegionUIntArray.from(length, magnitude, dataVersion);
+
+    int range = 500;
+    int min = -range;
+    int max = array.length() + range - 1;
+
+    for (int i = min; i < max; i++) {
+      if (i < 0 || i >= array.length()) {
+        int badIndex = i; // Required so index can be used inside the lambda.
+        assertThrows(ArrayIndexOutOfBoundsException.class, () -> array.set(badIndex, 0));
+      }
+    }
   }
 
-  /**
-   * @see RegionUIntArrayTestHelper#provider_magnitudes()
-   */
-  static int[] provider_magnitudes() {
-    return RegionUIntArrayTestHelper.provider_magnitudes();
+  @ParameterizedTest
+  @MethodSource("provider_lengthsAndMagnitudes")
+  void set_shouldThrowIfValueIsWiderThanMagnitude(int length, int magnitude) {
+    RegionUIntArray array = RegionUIntArray.from(length, magnitude, dataVersion);
+
+    int interval = Math.max(1, length / 100);
+    for (int i = 0; i < array.length(); i += interval) {
+      // Test all magnitudes greater than the expected one.
+      for (int m = array.magnitude() + 1; m < Integer.SIZE; m++) {
+        int index = i;
+        int valueThatIsTooWide = BitHelper.createBitMask(m);
+
+        assertThrows(IllegalArgumentException.class,
+            () -> array.set(index, valueThatIsTooWide),
+            String.format("Nothing thrown when magnitude=%1d, i=%2d", m, index)
+        );
+      }
+    }
   }
+
+  @Test
+  void equals_hashCode_shouldFollowContract() {
+    RegionUIntArray sample = RegionUIntArray.from(length, magnitude, dataVersion);
+    EqualsVerifier
+        .forClass(sample.getClass())
+        .withOnlyTheseFields("words", "length", "magnitude")
+        .usingGetClass()
+        .verify();
+  }
+
+  @ParameterizedTest
+  @MethodSource("provider_lengthsAndMagnitudes")
+  void toString_shouldNotThrow(int length, int magnitude) {
+    RegionUIntArray array = RegionUIntArray.from(length, magnitude, dataVersion);
+
+    assertDoesNotThrow(array::toString);
+  }
+
 
   /**
    * @see RegionUIntArrayTestHelper#provider_arrayValues(int, int)

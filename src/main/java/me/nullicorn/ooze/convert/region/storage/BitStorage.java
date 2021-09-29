@@ -33,10 +33,10 @@ class BitStorage extends RegionUIntArray {
   private final int valuesPerWord;
 
   /**
-   * See the {@link RegionUIntArray#RegionUIntArray(int, int, long...) superclass constructor} for
+   * See the {@link RegionUIntArray#RegionUIntArray(int, int, long[]) superclass constructor} for
    * details.
    */
-  public BitStorage(int length, int magnitude, long... words) {
+  BitStorage(int length, int magnitude, long[] words) {
     super(length, magnitude, words);
 
     valueMask = BitHelper.createBitMask(magnitude);
@@ -52,20 +52,8 @@ class BitStorage extends RegionUIntArray {
 
   @Override
   protected int getOrReplace(int index, boolean doReplace, int replacement) {
-    // Only call the getters once.
-    final int length = length();
-    final int magnitude = magnitude();
-    final long[] words = words();
-
-    // Validate args.
-    if (index < 0 || index >= length) {
-      throw new ArrayIndexOutOfBoundsException(index);
-
-    } else if (doReplace && BitHelper.widthInBits(replacement) > magnitude) {
-      throw new IllegalArgumentException(replacement + " is not valid for magnitude: " + magnitude);
-
-    } else if (magnitude == 0) {
-      // Everything is zero when magnitude == 0. Nothing to replace either.
+    // If magnitude == 0, every value is also 0.
+    if (magnitude == 0) {
       return 0;
     }
 

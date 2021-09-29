@@ -1,8 +1,6 @@
 package me.nullicorn.ooze.convert.region.storage;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
@@ -147,6 +145,17 @@ class NibbleArrayTests {
         .forClass(NibbleArray.class)
         .usingGetClass()
         .verify();
+  }
+
+  @ParameterizedTest
+  @MethodSource("provider_valuesThatMayBeMoreThanFourBits")
+  void toString_shouldNotThrow(int[] values) {
+    NibbleArray array = new NibbleArray(values.length);
+    for (int i = 0; i < values.length; i++) {
+      array.set(i, values[i]);
+    }
+
+    assertDoesNotThrow(array::toString);
   }
 
   /**

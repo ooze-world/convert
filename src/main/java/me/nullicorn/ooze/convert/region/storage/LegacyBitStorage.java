@@ -18,10 +18,10 @@ class LegacyBitStorage extends RegionUIntArray {
   private final int valueMask;
 
   /**
-   * See the {@link RegionUIntArray#RegionUIntArray(int, int, long...) superclass constructor} for
+   * See the {@link RegionUIntArray#RegionUIntArray(int, int, long[]) superclass constructor} for
    * details.
    */
-  public LegacyBitStorage(int length, int magnitude, long... words) {
+  LegacyBitStorage(int length, int magnitude, long[] words) {
     super(length, magnitude, words);
 
     valueMask = BitHelper.createBitMask(magnitude);
@@ -37,16 +37,9 @@ class LegacyBitStorage extends RegionUIntArray {
   }
 
   @Override
-  public int getOrReplace(int index, boolean doReplace, int replacement) {
-    final int length = length();
-    final int magnitude = magnitude();
-    final long[] words = words();
-
-    if (index < 0 || index >= length) {
-      throw new ArrayIndexOutOfBoundsException(index);
-    } else if (doReplace && (replacement < 0 || replacement > valueMask)) {
-      throw new IllegalArgumentException(replacement + " is invalid for magnitude " + magnitude);
-    } else if (magnitude == 0) {
+  protected int getOrReplace(int index, boolean doReplace, int replacement) {
+    // If magnitude == 0, every value is also 0.
+    if (magnitude == 0) {
       return 0;
     }
 
