@@ -47,16 +47,6 @@ public class RegionBlockArrayCodec extends VersionedCodec<PackedUIntArray, Regio
   }
 
   /**
-   * Shorthand for using {@link RegionUIntArray#from(int, int, long[], int) RegionUIntArray.from()}
-   * with the provided arguments and the codec's {@link #getCompatibility() data version}, then
-   * passing that array through the overloaded {@link #decode(RegionUIntArray) decode} function.
-   */
-  public PackedUIntArray decode(long[] words, int length, int magnitude) {
-    RegionUIntArray wrapper = RegionUIntArray.from(length, magnitude, words, dataVersion);
-    return decode(wrapper);
-  }
-
-  /**
    * Unpacks an array of ints from 64-bit words. More information {@link #encode(PackedUIntArray)
    * here}.
    *

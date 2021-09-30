@@ -8,6 +8,7 @@ import me.nullicorn.ooze.convert.MalformedInputException;
 import me.nullicorn.ooze.convert.VersionedCodec;
 import me.nullicorn.ooze.convert.VersionedTag;
 import me.nullicorn.ooze.convert.region.legacy.RegionLegacySectionCodec;
+import me.nullicorn.ooze.convert.region.storage.RegionUIntArray;
 import me.nullicorn.ooze.level.Cell;
 import me.nullicorn.ooze.level.PackedUIntArray;
 import me.nullicorn.ooze.level.Palette;
@@ -84,27 +85,35 @@ public class RegionSectionCodec extends VersionedCodec<Cell, NBTCompound> {
     } else if (section == null) {
       throw new IllegalArgumentException("null cannot be decoded as a cell");
     }
-    Palette palette;
-    PackedUIntArray blocks;
 
     // Read the NBT tags from the section.
     Optional<long[]> nbtBlocks = getTagValue(BLOCKS_TAG, section);
     Optional<NBTList> nbtPalette = getTagValue(PALETTE_TAG, section);
 
-    if (!nbtBlocks.isPresent()) {
-      // Sections might not have a block array in vanilla,
-      // so we silently return here instead of throwing.
+    if (!nbtBlocks.isPresent() && !nbtPalette.isPresent()) {
+      // It's normal for there to be no blocks and palette. It just means the section is empty.
       return Cell.empty();
 
+    } else if (!nbtBlocks.isPresent()) {
+      // Palette w/o blocks is probably bad.
+      throw new MalformedInputException("chunk section", "has palette, but no blocks");
+
     } else if (!nbtPalette.isPresent()) {
-      // Vanilla sections should never have blocks without
-      // a palette, so we can throw here.
-      throw new MalformedInputException("chunk section", "blocks without a palette");
+      // Blocks w/o palette is definitely bad.
+      throw new MalformedInputException("chunk section", "has blocks, but no palette");
     }
 
-    // Decode the block array & palette.
-    palette = paletteCodec.decode(nbtPalette.get());
-    blocks = blockArrayCodec.decode(nbtBlocks.get(), BLOCKS_PER_CELL, palette.magnitude());
+    // Decode the palette.
+    Palette palette = paletteCodec.decode(nbtPalette.get());
+
+    // Decode the block array.
+    RegionUIntArray regionBlockArray = RegionUIntArray.from(
+        BLOCKS_PER_CELL,
+        palette.magnitude(),
+        nbtBlocks.get(),
+        dataVersion);
+    PackedUIntArray blocks = blockArrayCodec.decode(regionBlockArray);
+
     return new Cell(palette, blocks);
   }
 }

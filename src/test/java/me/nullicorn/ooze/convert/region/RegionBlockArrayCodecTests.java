@@ -1,7 +1,6 @@
 package me.nullicorn.ooze.convert.region;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.function.IntConsumer;
 import java.util.stream.Stream;
@@ -43,12 +42,6 @@ class RegionBlockArrayCodecTests extends VersionedCodecTests {
   }
 
   @ParameterizedTest
-  @NullSource
-  void encode_shouldRejectNullArrays(PackedUIntArray input) {
-    assertThrows(IllegalArgumentException.class, () -> testCodec.encode(input));
-  }
-
-  @ParameterizedTest
   @MethodSource("provider_lengthsAndMagnitudes")
   void encode_shouldOutputLengthMatchInput(int length, int magnitude) {
     PackedUIntArray expected = new PackedUIntArray(provider_arrayValues(length, magnitude));
@@ -67,20 +60,37 @@ class RegionBlockArrayCodecTests extends VersionedCodecTests {
   }
 
   @ParameterizedTest
+  @NullSource
+  void encode_shouldThrowIfInputIsNull(PackedUIntArray input) {
+    assertThrows(IllegalArgumentException.class, () -> testCodec.encode(input));
+  }
+
+  @ParameterizedTest
   @MethodSource("provider_lengthsAndMagnitudes")
   void encode_shouldOutputHaveSameValuesAsInput(int length, int magnitude) {
     PackedUIntArray expected = new PackedUIntArray(provider_arrayValues(length, magnitude));
     RegionUIntArray actual = testCodec.encode(expected);
 
     for (int i = 0; i < expected.size(); i++) {
-      assertEquals(expected.get(i), actual.get(i), "Encoded array has wrong value at index " + i);
+      assertEquals(expected.get(i), actual.get(i), "disagreement at i=" + i);
     }
   }
 
   @ParameterizedTest
   @NullSource
-  void decode_shouldRejectNullArrays(RegionUIntArray input) {
-    assertThrows(IllegalArgumentException.class, () -> testCodec.decode(input));
+  void decode_shouldThrowIfInputIsNull(RegionUIntArray arrayThatIsNull) {
+    assertThrows(IllegalArgumentException.class, () -> testCodec.decode(arrayThatIsNull));
+  }
+
+  @ParameterizedTest
+  @MethodSource("provider_lengthsAndMagnitudes")
+  void decode_shouldOutputHaveSameValuesAsInput(int length, int magnitude) {
+    RegionUIntArray expected = RegionUIntArray.from(length, magnitude, EARLIEST_VERSION);
+    PackedUIntArray actual = testCodec.decode(expected);
+
+    for (int i = 0; i < expected.length(); i++) {
+      assertEquals(expected.get(i), actual.get(i), "disagreement at i=" + i);
+    }
   }
 
   /**
